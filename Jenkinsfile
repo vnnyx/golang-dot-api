@@ -22,7 +22,7 @@ pipeline{
             }
         }
         stage('deploy'){
-            environtment {
+            environment {
                 DEV = credentials('dev-dot-api')
             }
             steps{
