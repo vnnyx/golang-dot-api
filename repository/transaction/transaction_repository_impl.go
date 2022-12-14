@@ -47,3 +47,7 @@ func (repository *TransactionRepositoryImpl) DeleteTransaction(ctx context.Conte
 func (repository *TransactionRepositoryImpl) DeleteTransactionByUserId(ctx context.Context, tx *gorm.DB, userId string) error {
 	return tx.WithContext(ctx).Where("user_id", userId).Delete(&entity.Transaction{}).Error
 }
+
+func (repository *TransactionRepositoryImpl) DeleteAllTransaction(ctx context.Context) error {
+	return repository.DB.WithContext(ctx).Exec("DELETE FROM transactions").Error
+}

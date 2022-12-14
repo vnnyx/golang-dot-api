@@ -15,4 +15,5 @@ type TransactionRepository interface {
 	UpdateTransaction(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error)
 	DeleteTransaction(ctx context.Context, transactionId string) error
 	DeleteTransactionByUserId(ctx context.Context, tx *gorm.DB, userId string) error
+	DeleteAllTransaction(ctx context.Context) error
 }
