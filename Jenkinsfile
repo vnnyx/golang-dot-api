@@ -17,8 +17,14 @@ pipeline{
             }
         }
         stage('test'){
+            environment {
+                TEST = credentials('dev-dot-api-test')
+            }
             steps{
-                echo "test ${env.JOB_NAME}"
+                sh 'cp -p $TEST $WORKSPACE/test/integration'
+                sh 'docker compose -f docker-compose.test.yaml up --build'
+                sh 'docker compose -f docker-compose.test.yaml down'
+                sh 'docker image prune -f'
             }
         }
         stage('deploy'){
