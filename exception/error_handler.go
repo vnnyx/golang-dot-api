@@ -2,6 +2,7 @@ package exception
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,6 +12,9 @@ import (
 )
 
 func ErrorHandler(err error, ctx echo.Context) {
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	if databaseError(err, ctx) {
 		return
 	}
