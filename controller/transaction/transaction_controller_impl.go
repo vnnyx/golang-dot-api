@@ -92,7 +92,7 @@ func (controller *TransactionControllerImpl) UpdateTransaction(c echo.Context) e
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
-		Code:   http.StatusCreated,
+		Code:   http.StatusOK,
 		Status: web.OK,
 		Data:   response,
 	})
