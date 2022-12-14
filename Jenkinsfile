@@ -22,8 +22,13 @@ pipeline{
             }
         }
         stage('deploy'){
+            environtment {
+                DEV = credentials('dev-dot-api')
+            }
             steps{
-                echo "deploy ${env.JOB_NAME}"
+                sh 'cp -p $SECRET $WORKSPACE'
+                sh 'docker compose up --build -d'
+                sh 'docker image prune -f'
             }
         }
     }
