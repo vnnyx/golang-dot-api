@@ -27,6 +27,7 @@ pipeline{
             }
             steps{
                 sh 'cp -p $DEV $WORKSPACE'
+                sh 'mv $DEV .env'
                 sh 'docker compose up --build -d'
                 sh 'docker image prune -f'
             }
