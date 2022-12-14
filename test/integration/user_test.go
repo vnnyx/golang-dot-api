@@ -3,7 +3,6 @@ package integration
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -293,7 +292,6 @@ func TestUpdateUserProfile(t *testing.T) {
 			response := recorder.Result()
 
 			responseBody, _ := io.ReadAll(response.Body)
-			fmt.Println(string(responseBody))
 			webResponse := web.WebResponse{}
 			json.Unmarshal(responseBody, &webResponse)
 			// assert.Equal(t, tt.codeExpected, webResponse.Code)
