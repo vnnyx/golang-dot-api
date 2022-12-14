@@ -34,7 +34,7 @@ func (controller *TransactionControllerImpl) CreateTransaction(c echo.Context) e
 	exception.PanicIfNeeded(err)
 
 	request.UserID = c.QueryParam("user_id")
-	response, err := controller.TransactionService.CreateTransaction(request)
+	response, err := controller.TransactionService.CreateTransaction(c.Request().Context(), request)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusCreated, web.WebResponse{
@@ -47,7 +47,7 @@ func (controller *TransactionControllerImpl) CreateTransaction(c echo.Context) e
 func (controller *TransactionControllerImpl) GetTransactionById(c echo.Context) error {
 	transactionId := c.Param("id")
 
-	response, err := controller.TransactionService.GetTransactionById(transactionId)
+	response, err := controller.TransactionService.GetTransactionById(c.Request().Context(), transactionId)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -58,7 +58,7 @@ func (controller *TransactionControllerImpl) GetTransactionById(c echo.Context) 
 }
 
 func (controller *TransactionControllerImpl) GetAllTransaction(c echo.Context) error {
-	response, err := controller.TransactionService.GetAllTransaction()
+	response, err := controller.TransactionService.GetAllTransaction(c.Request().Context())
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -71,7 +71,7 @@ func (controller *TransactionControllerImpl) GetAllTransaction(c echo.Context) e
 func (controller *TransactionControllerImpl) GetTransactionByUserId(c echo.Context) error {
 	userId := c.QueryParam("user_id")
 
-	response, err := controller.TransactionService.GetTransactionByUserId(userId)
+	response, err := controller.TransactionService.GetTransactionByUserId(c.Request().Context(), userId)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -87,7 +87,7 @@ func (controller *TransactionControllerImpl) UpdateTransaction(c echo.Context) e
 	exception.PanicIfNeeded(err)
 
 	request.TransactionID = c.Param("id")
-	response, err := controller.TransactionService.UpdateTransaction(request)
+	response, err := controller.TransactionService.UpdateTransaction(c.Request().Context(), request)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -100,7 +100,7 @@ func (controller *TransactionControllerImpl) UpdateTransaction(c echo.Context) e
 func (controller *TransactionControllerImpl) RemoveTransaction(c echo.Context) error {
 	transactionId := c.Param("id")
 
-	err := controller.TransactionService.RemoveTransaction(transactionId)
+	err := controller.TransactionService.RemoveTransaction(c.Request().Context(), transactionId)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{

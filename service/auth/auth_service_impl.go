@@ -26,7 +26,7 @@ func NewAuthService(config *infrastructure.Config, db *gorm.DB, userRepository u
 }
 
 func (service *AuthServiceImpl) Login(ctx context.Context, request web.LoginRequest) (response web.LoginResponse, err error) {
-	user, err := service.UserRepository.FindUserByUsername(request.Username)
+	user, err := service.UserRepository.FindUserByUsername(ctx, request.Username)
 	if err != nil {
 		return response, errors.New(web.UNAUTHORIZATION)
 	}

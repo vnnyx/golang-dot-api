@@ -1,16 +1,18 @@
 package transaction
 
 import (
+	"context"
+
 	"github.com/vnnyx/golang-dot-api/model/entity"
 	"gorm.io/gorm"
 )
 
 type TransactionRepository interface {
-	InsertTransaction(transaction entity.Transaction) (entity.Transaction, error)
-	FindTransactionByID(transactionId string) (transaction entity.Transaction, err error)
-	FindAllTransaction() (transactions []entity.Transaction, err error)
-	FindTransactionByUserId(userId string) (transactions []entity.Transaction, err error)
-	UpdateTransaction(transaction entity.Transaction) (entity.Transaction, error)
-	DeleteTransaction(transactionId string) error
-	DeleteTransactionByUserId(tx *gorm.DB, userId string) error
+	InsertTransaction(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error)
+	FindTransactionByID(ctx context.Context, transactionId string) (transaction entity.Transaction, err error)
+	FindAllTransaction(ctx context.Context) (transactions []entity.Transaction, err error)
+	FindTransactionByUserId(ctx context.Context, userId string) (transactions []entity.Transaction, err error)
+	UpdateTransaction(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error)
+	DeleteTransaction(ctx context.Context, transactionId string) error
+	DeleteTransactionByUserId(ctx context.Context, tx *gorm.DB, userId string) error
 }

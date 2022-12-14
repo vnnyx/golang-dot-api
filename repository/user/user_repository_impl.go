@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	"github.com/vnnyx/golang-dot-api/model/entity"
 	"gorm.io/gorm"
 )
@@ -13,31 +15,31 @@ func NewUserRepository(DB *gorm.DB) UserRepository {
 	return &UserRepositoryImpl{DB: DB}
 }
 
-func (repository *UserRepositoryImpl) InsertUser(user entity.User) (entity.User, error) {
-	err := repository.DB.Create(&user).Error
+func (repository *UserRepositoryImpl) InsertUser(ctx context.Context, user entity.User) (entity.User, error) {
+	err := repository.DB.WithContext(ctx).Create(&user).Error
 	return user, err
 }
 
-func (repository *UserRepositoryImpl) FindUserByID(userId string) (user entity.User, err error) {
-	err = repository.DB.Where("user_id", userId).First(&user).Error
+func (repository *UserRepositoryImpl) FindUserByID(ctx context.Context, userId string) (user entity.User, err error) {
+	err = repository.DB.WithContext(ctx).Where("user_id", userId).First(&user).Error
 	return user, err
 }
 
-func (repository *UserRepositoryImpl) FindUserByUsername(username string) (user entity.User, err error) {
-	err = repository.DB.Where("username", username).First(&user).Error
+func (repository *UserRepositoryImpl) FindUserByUsername(ctx context.Context, username string) (user entity.User, err error) {
+	err = repository.DB.WithContext(ctx).Where("username", username).First(&user).Error
 	return user, err
 }
 
-func (repository *UserRepositoryImpl) FindAllUser() (users []entity.User, err error) {
-	err = repository.DB.Find(&users).Error
+func (repository *UserRepositoryImpl) FindAllUser(ctx context.Context) (users []entity.User, err error) {
+	err = repository.DB.WithContext(ctx).Find(&users).Error
 	return users, err
 }
 
-func (repository *UserRepositoryImpl) UpdateUser(user entity.User) (entity.User, error) {
-	err := repository.DB.Where("user_id", user.UserID).Updates(&user).Error
+func (repository *UserRepositoryImpl) UpdateUser(ctx context.Context, user entity.User) (entity.User, error) {
+	err := repository.DB.WithContext(ctx).Where("user_id", user.UserID).Updates(&user).Error
 	return user, err
 }
 
-func (repository *UserRepositoryImpl) DeleteUser(tx *gorm.DB, userId string) error {
-	return tx.Where("user_id", userId).Delete(&entity.User{}).Error
+func (repository *UserRepositoryImpl) DeleteUser(ctx context.Context, tx *gorm.DB, userId string) error {
+	return tx.WithContext(ctx).Where("user_id", userId).Delete(&entity.User{}).Error
 }
