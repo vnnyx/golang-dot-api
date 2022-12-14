@@ -43,3 +43,7 @@ func (repository *UserRepositoryImpl) UpdateUser(ctx context.Context, user entit
 func (repository *UserRepositoryImpl) DeleteUser(ctx context.Context, tx *gorm.DB, userId string) error {
 	return tx.WithContext(ctx).Where("user_id", userId).Delete(&entity.User{}).Error
 }
+
+func (repository *UserRepositoryImpl) DeteleAllUser(ctx context.Context) error {
+	return repository.DB.WithContext(ctx).Exec("DELETE FROM users").Error
+}
