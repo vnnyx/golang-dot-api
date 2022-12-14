@@ -81,7 +81,12 @@ func (service *TransactionServiceImpl) GetAllTransaction(ctx context.Context) (r
 }
 
 func (service *TransactionServiceImpl) GetTransactionByUserId(ctx context.Context, userId string) (response []web.TransactionResponse, err error) {
-	transactions, err := service.TransactionRepository.FindTransactionByUserId(ctx, userId)
+	user, err := service.UserRepository.FindUserByID(ctx, userId)
+	if err != nil {
+		return response, errors.New("USER_NOT_FOUND")
+	}
+
+	transactions, err := service.TransactionRepository.FindTransactionByUserId(ctx, user.UserID)
 	if err != nil {
 		return response, err
 	}
