@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.tests
-    restart: on-failure
+    restart: always
     depends_on:
       - mysql
       - redis
@@ -14,7 +14,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    restart: on-failure
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: dot_test_database
@@ -24,7 +24,7 @@ services:
 
   redis:
     image: redis:alpine
-    restart: on-failure
+    restart: always
     networks:
       - integration-test
 
