@@ -26,7 +26,7 @@ pipeline{
                 DEV = credentials('dev-dot-api')
             }
             steps{
-                sh 'cp -p $SECRET $WORKSPACE'
+                sh 'cp -p $DEV $WORKSPACE'
                 sh 'docker compose up --build -d'
                 sh 'docker image prune -f'
             }
