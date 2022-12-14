@@ -122,8 +122,13 @@ func (service *UserServiceImpl) UpdateUserProfile(request web.UserUpdateProfileR
 }
 
 func (service *UserServiceImpl) RemoveUser(userId string) error {
+	user, err := service.UserRepository.FindUserByID(userId)
+	if err != nil {
+		return errors.New("USER_NOT_FOUND")
+	}
+
 	tx := service.DB.Begin()
-	err := tx.Error
+	err = tx.Error
 	if err != nil {
 		return err
 	}
@@ -139,12 +144,12 @@ func (service *UserServiceImpl) RemoveUser(userId string) error {
 		}
 	}()
 
-	err = service.TransactionRepository.DeleteTransactionByUserId(userId)
+	err = service.TransactionRepository.DeleteTransactionByUserId(tx, user.UserID)
 	if err != nil {
 		return err
 	}
 
-	err = service.UserRepository.DeleteUser(tx, userId)
+	err = service.UserRepository.DeleteUser(tx, user.UserID)
 	if err != nil {
 		return err
 	}

@@ -42,6 +42,6 @@ func (repository *TransactionRepositoryImpl) DeleteTransaction(transactionId str
 	return repository.DB.Where("transaction_id", transactionId).Delete(&entity.Transaction{}).Error
 }
 
-func (repository *TransactionRepositoryImpl) DeleteTransactionByUserId(userId string) error {
-	return repository.DB.Where("user_id", userId).Delete(&entity.Transaction{}).Error
+func (repository *TransactionRepositoryImpl) DeleteTransactionByUserId(tx *gorm.DB, userId string) error {
+	return tx.Where("user_id", userId).Delete(&entity.Transaction{}).Error
 }
