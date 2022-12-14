@@ -27,8 +27,8 @@ pipeline{
             }
             steps{
                 sh 'mv $DEV .env'
-                sh 'docker compose up --build -d'
-                sh 'docker image prune -f'
+                sh 'sudo docker compose up --build -d'
+                sh 'sudo docker image prune -f'
             }
         }
     }
