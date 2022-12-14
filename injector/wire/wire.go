@@ -17,7 +17,7 @@ import (
 	userService "github.com/vnnyx/golang-dot-api/service/user"
 )
 
-func InitializeUserController() userController.UserController {
+func InitializeUserController(configName string) userController.UserController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
@@ -29,7 +29,7 @@ func InitializeUserController() userController.UserController {
 	return nil
 }
 
-func InitializeTransactionController() transactionController.TransactionController {
+func InitializeTransactionController(configName string) transactionController.TransactionController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
@@ -41,7 +41,7 @@ func InitializeTransactionController() transactionController.TransactionControll
 	return nil
 }
 
-func InitializeAuthController() authController.AuthController {
+func InitializeAuthController(configName string) authController.AuthController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,

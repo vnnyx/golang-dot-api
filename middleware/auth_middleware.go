@@ -20,7 +20,7 @@ type DecodedStructure struct {
 }
 
 func ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
-	configuration := infrastructure.NewConfig()
+	configuration := infrastructure.NewConfig(".env")
 	jwtPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(configuration.JWTPublicKey))
 
 	if err != nil {
@@ -42,7 +42,7 @@ func ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
 }
 
 func DecodeToken(encodedToken string) (decodedResult DecodedStructure, errData error) {
-	configuration := infrastructure.NewConfig()
+	configuration := infrastructure.NewConfig(".env")
 	jwtPublicKey, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(configuration.JWTPublicKey))
 	tokenString := encodedToken
 	claims := jwt.MapClaims{}

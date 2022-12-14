@@ -21,8 +21,8 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeUserController() user.UserController {
-	config := infrastructure.NewConfig()
+func InitializeUserController(configName string) user.UserController {
+	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	userRepository := user2.NewUserRepository(db)
 	transactionRepository := transaction.NewTransactionRepository(db)
@@ -31,8 +31,8 @@ func InitializeUserController() user.UserController {
 	return userController
 }
 
-func InitializeTransactionController() transaction2.TransactionController {
-	config := infrastructure.NewConfig()
+func InitializeTransactionController(configName string) transaction2.TransactionController {
+	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	transactionRepository := transaction.NewTransactionRepository(db)
 	userRepository := user2.NewUserRepository(db)
@@ -41,8 +41,8 @@ func InitializeTransactionController() transaction2.TransactionController {
 	return transactionController
 }
 
-func InitializeAuthController() auth.AuthController {
-	config := infrastructure.NewConfig()
+func InitializeAuthController(configName string) auth.AuthController {
+	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	userRepository := user2.NewUserRepository(db)
 	client := infrastructure.NewRedisClient()

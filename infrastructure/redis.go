@@ -5,7 +5,7 @@ import (
 )
 
 func NewRedisClient() *redis.Client {
-	config := NewConfig()
+	config := NewConfig(".env")
 	client := redis.NewClient(&redis.Options{
 		Addr:     config.RedisHost,
 		Password: config.RedisPassword,
