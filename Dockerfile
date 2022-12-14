@@ -9,7 +9,7 @@ RUN go build \
 RUN upx -9 /builder/cmd/app/main
 
 FROM alpine:latest
-ENV APP_PORT=9000
+ENV APP_PORT=9090
 WORKDIR /app
 COPY --from=builder /builder/cmd/app/main .
 COPY --from=builder /builder/.env .
