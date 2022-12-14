@@ -18,7 +18,7 @@ pipeline{
         }
         stage('test'){
             environment {
-                TEST = credentials('dev-dot-api-test')
+                TEST = credentials('golang-dot-api-test')
             }
             steps{
                 sh 'cp -p $TEST $WORKSPACE/test/integration'
