@@ -14,5 +14,5 @@ type UserRepository interface {
 	FindUserByUsername(ctx context.Context, username string) (user entity.User, err error)
 	UpdateUser(ctx context.Context, user entity.User) (entity.User, error)
 	DeleteUser(ctx context.Context, tx *gorm.DB, userId string) error
-	DeteleAllUser(ctx context.Context) error
+	DeleteAllUser(ctx context.Context) error
 }
