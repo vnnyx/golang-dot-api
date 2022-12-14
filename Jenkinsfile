@@ -22,7 +22,7 @@ pipeline{
             }
             steps{
                 sh 'cp -p $TEST $WORKSPACE/test/integration'
-                sh 'docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit'
+                sh 'docker compose -f docker-compose.test.yaml up --build'
                 sh 'docker compose -f docker-compose.test.yaml down --volumes'
                 sh 'docker image prune -f'
             }
