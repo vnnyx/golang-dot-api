@@ -9,6 +9,7 @@ import (
 	"github.com/vnnyx/golang-dot-api/model/web"
 	"github.com/vnnyx/golang-dot-api/repository/transaction"
 	"github.com/vnnyx/golang-dot-api/repository/user"
+	"github.com/vnnyx/golang-dot-api/validation"
 )
 
 type TransactionServiceImpl struct {
@@ -21,6 +22,8 @@ func NewTransactionService(transactionRepository transaction.TransactionReposito
 }
 
 func (service *TransactionServiceImpl) CreateTransaction(ctx context.Context, request web.TransactionCreateRequest) (response web.TransactionResponse, err error) {
+	validation.CreateTransactionValidation(request)
+
 	user, err := service.UserRepository.FindUserByID(ctx, request.UserID)
 	if err != nil {
 		return response, errors.New("USER_NOT_FOUND")
@@ -95,6 +98,8 @@ func (service *TransactionServiceImpl) GetTransactionByUserId(ctx context.Contex
 }
 
 func (service *TransactionServiceImpl) UpdateTransaction(ctx context.Context, request web.TransactionUpdateRequest) (response web.TransactionResponse, err error) {
+	validation.UpdateTransactionValidation(request)
+
 	transaction, err := service.TransactionRepository.FindTransactionByID(ctx, request.TransactionID)
 	if err != nil {
 		return response, errors.New("TRANSACTION_NOT_FOUND")
