@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  app:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dot-api
+    ports:
+      - "127.0.0.1:${APP_PORT}:${APP_PORT}"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - dot
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: dot_database
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    networks:
+      - dot
+
+  redis:
+    image: redis:latest
+    networks:
+      - dot
+
+networks:
+  dot:
+    driver: bridge
