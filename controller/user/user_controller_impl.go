@@ -12,10 +12,11 @@ import (
 
 type UserControllerImpl struct {
 	user.UserService
+	*authMiddleware.AuthMiddleware
 }
 
-func NewUserController(userService user.UserService) UserController {
-	return &UserControllerImpl{UserService: userService}
+func NewUserController(userService user.UserService, authMiddleware *authMiddleware.AuthMiddleware) UserController {
+	return &UserControllerImpl{UserService: userService, AuthMiddleware: authMiddleware}
 }
 
 func (controller *UserControllerImpl) Route(e *echo.Echo) {
@@ -23,7 +24,7 @@ func (controller *UserControllerImpl) Route(e *echo.Echo) {
 	api.POST("", controller.CreateUser)
 	api.GET("/:id", controller.GetUserById)
 	api.GET("", controller.GetAllUser)
-	api.PUT("/:id", controller.UpdateUserProfile, authMiddleware.CheckToken)
+	api.PUT("/:id", controller.UpdateUserProfile, controller.AuthMiddleware.CheckToken)
 	api.DELETE("/:id", controller.RemoveUser)
 }
 

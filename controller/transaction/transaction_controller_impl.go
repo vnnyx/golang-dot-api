@@ -12,14 +12,15 @@ import (
 
 type TransactionControllerImpl struct {
 	transaction.TransactionService
+	*authMiddleware.AuthMiddleware
 }
 
-func NewTransactionController(transactionService transaction.TransactionService) TransactionController {
-	return &TransactionControllerImpl{TransactionService: transactionService}
+func NewTransactionController(transactionService transaction.TransactionService, authMiddleware *authMiddleware.AuthMiddleware) TransactionController {
+	return &TransactionControllerImpl{TransactionService: transactionService, AuthMiddleware: authMiddleware}
 }
 
 func (controller *TransactionControllerImpl) Route(e *echo.Echo) {
-	api := e.Group("/dot-api/transaction", authMiddleware.CheckToken)
+	api := e.Group("/dot-api/transaction", controller.AuthMiddleware.CheckToken)
 	api.POST("", controller.CreateTransaction)
 	api.GET("/:id", controller.GetTransactionById)
 	api.GET("", controller.GetAllTransaction)

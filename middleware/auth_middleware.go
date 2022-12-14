@@ -19,8 +19,16 @@ type DecodedStructure struct {
 	AccessUUID string `json:"access_uuid"`
 }
 
-func ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
-	configuration := infrastructure.NewConfig(".env")
+type AuthMiddleware struct {
+	ConfigName string
+}
+
+func NewAuthMiddleware(configName string) *AuthMiddleware {
+	return &AuthMiddleware{ConfigName: configName}
+}
+
+func (middleware *AuthMiddleware) ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
+	configuration := infrastructure.NewConfig(middleware.ConfigName)
 	jwtPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(configuration.JWTPublicKey))
 
 	if err != nil {
@@ -41,8 +49,30 @@ func ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
 	return token, nil
 }
 
-func DecodeToken(encodedToken string) (decodedResult DecodedStructure, errData error) {
-	configuration := infrastructure.NewConfig(".env")
+// func ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
+// 	configuration := infrastructure.NewConfig(".env")
+// 	jwtPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(configuration.JWTPublicKey))
+
+// 	if err != nil {
+// 		return token, err
+// 	}
+
+// 	tokenString := encodedToken
+// 	claims := jwt.MapClaims{}
+// 	token, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+// 		return jwtPublicKey, nil
+// 	})
+// 	if err != nil {
+// 		return token, err
+// 	}
+// 	if !token.Valid {
+// 		return token, errors.New("invalid token")
+// 	}
+// 	return token, nil
+// }
+
+func (middleware *AuthMiddleware) DecodeToken(encodedToken string) (decodedResult DecodedStructure, errData error) {
+	configuration := infrastructure.NewConfig(middleware.ConfigName)
 	jwtPublicKey, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(configuration.JWTPublicKey))
 	tokenString := encodedToken
 	claims := jwt.MapClaims{}
@@ -69,7 +99,7 @@ func DecodeToken(encodedToken string) (decodedResult DecodedStructure, errData e
 	return obj, nil
 }
 
-func CheckToken(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *AuthMiddleware) CheckToken(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		header := ctx.Request().Header
 		tokenSlice := strings.Split(header.Get("Authorization"), "Bearer ")
@@ -80,18 +110,18 @@ func CheckToken(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		//validate token
-		_, err := ValidateToken(tokenString)
+		_, err := middleware.ValidateToken(tokenString)
 		if err != nil {
 			return errors.New(web.UNAUTHORIZATION)
 		}
 
 		//extract data from token
-		decodeRes, err := DecodeToken(tokenString)
+		decodeRes, err := middleware.DecodeToken(tokenString)
 		if err != nil {
 			return errors.New(web.UNAUTHORIZATION)
 		}
 
-		_, err = auth.NewAuthRepository(infrastructure.NewRedisClient()).GetToken(context.Background(), decodeRes.AccessUUID)
+		_, err = auth.NewAuthRepository(infrastructure.NewRedisClient(middleware.ConfigName)).GetToken(context.Background(), decodeRes.AccessUUID)
 		if err != nil {
 			return errors.New(web.UNAUTHORIZATION)
 		}
