@@ -5,7 +5,7 @@ pipeline{
         }
     }
     triggers{
-        pollSCM("*/5 * * * *")
+        pollSCM("*/20 * * * *")
     }
     options{
         buildDiscarder(logRotator(numToKeepStr: '3'))
@@ -22,7 +22,7 @@ pipeline{
             }
             steps{
                 sh 'cp -p $TEST $WORKSPACE/test/integration'
-                sh 'docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit'
+                sh 'docker compose -f docker-compose.test.yaml up --build -d'
                 sh 'docker compose -f docker-compose.test.yaml down'
                 sh 'docker image prune -f'
             }
