@@ -27,3 +27,7 @@ func (repository *AuthRepositoryImpl) DeleteToken(ctx context.Context, accessUui
 func (repository *AuthRepositoryImpl) GetToken(ctx context.Context, accessUuid string) (access string, err error) {
 	return repository.Redis.Get(ctx, accessUuid).Result()
 }
+
+func (repository *AuthRepositoryImpl) FlushAll(ctx context.Context) error {
+	return repository.Redis.FlushAll(ctx).Err()
+}

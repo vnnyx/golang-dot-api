@@ -13,13 +13,13 @@ import (
 )
 
 func main() {
-	configuration := infrastructure.NewConfig()
+	configuration := infrastructure.NewConfig(".env")
 	databases := infrastructure.NewMySQLDatabase(configuration)
 	migration.Migrate(databases, entity.Transaction{}, entity.User{})
 
-	userController := wire.InitializeUserController()
-	transactionController := wire.InitializeTransactionController()
-	authController := wire.InitializeAuthController()
+	userController := wire.InitializeUserController(".env")
+	transactionController := wire.InitializeTransactionController(".env")
+	authController := wire.InitializeAuthController(".env")
 
 	app := echo.New()
 	app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{DisablePrintStack: true}))

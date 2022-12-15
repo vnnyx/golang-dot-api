@@ -12,10 +12,11 @@ import (
 
 type UserControllerImpl struct {
 	user.UserService
+	*authMiddleware.AuthMiddleware
 }
 
-func NewUserController(userService user.UserService) UserController {
-	return &UserControllerImpl{UserService: userService}
+func NewUserController(userService user.UserService, authMiddleware *authMiddleware.AuthMiddleware) UserController {
+	return &UserControllerImpl{UserService: userService, AuthMiddleware: authMiddleware}
 }
 
 func (controller *UserControllerImpl) Route(e *echo.Echo) {
@@ -23,7 +24,7 @@ func (controller *UserControllerImpl) Route(e *echo.Echo) {
 	api.POST("", controller.CreateUser)
 	api.GET("/:id", controller.GetUserById)
 	api.GET("", controller.GetAllUser)
-	api.PUT("/:id", controller.UpdateUserProfile, authMiddleware.CheckToken)
+	api.PUT("/:id", controller.UpdateUserProfile, controller.AuthMiddleware.CheckToken)
 	api.DELETE("/:id", controller.RemoveUser)
 }
 
@@ -32,7 +33,7 @@ func (controller *UserControllerImpl) CreateUser(c echo.Context) error {
 	err := c.Bind(&request)
 	exception.PanicIfNeeded(err)
 
-	response, err := controller.UserService.CreateUser(request)
+	response, err := controller.UserService.CreateUser(c.Request().Context(), request)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusCreated, web.WebResponse{
@@ -45,7 +46,7 @@ func (controller *UserControllerImpl) CreateUser(c echo.Context) error {
 func (controller *UserControllerImpl) GetUserById(c echo.Context) error {
 	userId := c.Param("id")
 
-	response, err := controller.UserService.GetUserById(userId)
+	response, err := controller.UserService.GetUserById(c.Request().Context(), userId)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -56,7 +57,7 @@ func (controller *UserControllerImpl) GetUserById(c echo.Context) error {
 }
 
 func (controller *UserControllerImpl) GetAllUser(c echo.Context) error {
-	response, err := controller.UserService.GetAllUser()
+	response, err := controller.UserService.GetAllUser(c.Request().Context())
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -72,7 +73,7 @@ func (controller *UserControllerImpl) UpdateUserProfile(c echo.Context) error {
 	exception.PanicIfNeeded(err)
 
 	request.UserID = c.Param("id")
-	response, err := controller.UserService.UpdateUserProfile(request)
+	response, err := controller.UserService.UpdateUserProfile(c.Request().Context(), request)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{
@@ -85,7 +86,7 @@ func (controller *UserControllerImpl) UpdateUserProfile(c echo.Context) error {
 func (controller *UserControllerImpl) RemoveUser(c echo.Context) error {
 	userId := c.Param("id")
 
-	err := controller.UserService.RemoveUser(userId)
+	err := controller.UserService.RemoveUser(c.Request().Context(), userId)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{

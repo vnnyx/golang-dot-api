@@ -2,13 +2,10 @@ version: '3'
 
 services:
   app:
-    restart: on-failure
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: dot-api
-    ports:
-      - "127.0.0.1:${APP_PORT}:${APP_PORT}"
+      dockerfile: Dockerfile.tests
+    restart: on-failure
     networks:
       - dot_net
 networks:

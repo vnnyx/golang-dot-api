@@ -5,7 +5,7 @@ pipeline{
         }
     }
     triggers{
-        pollSCM("*/5 * * * *")
+        pollSCM("*/20 * * * *")
     }
     options{
         buildDiscarder(logRotator(numToKeepStr: '3'))
@@ -17,13 +17,24 @@ pipeline{
             }
         }
         stage('test'){
+            environment {
+                TEST = credentials('golang-dot-api-test')
+            }
             steps{
-                echo "test ${env.JOB_NAME}"
+                sh 'cp -p $TEST $WORKSPACE/test/integration'
+                sh 'docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit'
+                sh 'docker compose -f docker-compose.test.yaml down --volumes'
+                sh 'docker image prune -f'
             }
         }
         stage('deploy'){
+            environment {
+                DEV = credentials('dev-dot-api')
+            }
             steps{
-                echo "deploy ${env.JOB_NAME}"
+                sh 'mv $DEV .env'
+                sh 'docker compose up --build -d'
+                sh 'docker image prune -f'
             }
         }
     }

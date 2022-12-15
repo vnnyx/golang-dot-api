@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ func NewUserService(userRepository user.UserRepository, transactionRepository tr
 	return &UserServiceImpl{UserRepository: userRepository, TransactionRepository: transactionRepository, DB: DB}
 }
 
-func (service *UserServiceImpl) CreateUser(request web.UserCreateRequest) (response web.UserResponse, err error) {
+func (service *UserServiceImpl) CreateUser(ctx context.Context, request web.UserCreateRequest) (response web.UserResponse, err error) {
 	validation.CreateUserValidation(request)
 
 	if request.Password != request.PasswordConfirmation {
@@ -43,7 +44,7 @@ func (service *UserServiceImpl) CreateUser(request web.UserCreateRequest) (respo
 		Password:  string(password),
 	}
 
-	user, err = service.UserRepository.InsertUser(user)
+	user, err = service.UserRepository.InsertUser(ctx, user)
 	if err != nil {
 		return response, err
 	}
@@ -58,8 +59,8 @@ func (service *UserServiceImpl) CreateUser(request web.UserCreateRequest) (respo
 	return response, nil
 }
 
-func (service *UserServiceImpl) GetUserById(userId string) (response web.UserResponse, err error) {
-	user, err := service.UserRepository.FindUserByID(userId)
+func (service *UserServiceImpl) GetUserById(ctx context.Context, userId string) (response web.UserResponse, err error) {
+	user, err := service.UserRepository.FindUserByID(ctx, userId)
 	if err != nil {
 		return response, errors.New("USER_NOT_FOUND")
 	}
@@ -74,8 +75,8 @@ func (service *UserServiceImpl) GetUserById(userId string) (response web.UserRes
 	return response, nil
 }
 
-func (service *UserServiceImpl) GetAllUser() (response []web.UserResponse, err error) {
-	users, err := service.UserRepository.FindAllUser()
+func (service *UserServiceImpl) GetAllUser(ctx context.Context) (response []web.UserResponse, err error) {
+	users, err := service.UserRepository.FindAllUser(ctx)
 	if err != nil {
 		return response, err
 	}
@@ -92,15 +93,15 @@ func (service *UserServiceImpl) GetAllUser() (response []web.UserResponse, err e
 	return response, nil
 }
 
-func (service *UserServiceImpl) UpdateUserProfile(request web.UserUpdateProfileRequest) (response web.UserResponse, err error) {
+func (service *UserServiceImpl) UpdateUserProfile(ctx context.Context, request web.UserUpdateProfileRequest) (response web.UserResponse, err error) {
 	validation.UpdateUserProfileValidation(request)
 
-	user, err := service.UserRepository.FindUserByID(request.UserID)
+	user, err := service.UserRepository.FindUserByID(ctx, request.UserID)
 	if err != nil {
 		return response, errors.New("USER_NOT_FOUND")
 	}
 
-	user, err = service.UserRepository.UpdateUser(entity.User{
+	user, err = service.UserRepository.UpdateUser(ctx, entity.User{
 		UserID:    user.UserID,
 		Username:  request.Username,
 		Email:     request.Email,
@@ -121,9 +122,14 @@ func (service *UserServiceImpl) UpdateUserProfile(request web.UserUpdateProfileR
 	return response, nil
 }
 
-func (service *UserServiceImpl) RemoveUser(userId string) error {
+func (service *UserServiceImpl) RemoveUser(ctx context.Context, userId string) error {
+	user, err := service.UserRepository.FindUserByID(ctx, userId)
+	if err != nil {
+		return errors.New("USER_NOT_FOUND")
+	}
+
 	tx := service.DB.Begin()
-	err := tx.Error
+	err = tx.Error
 	if err != nil {
 		return err
 	}
@@ -139,12 +145,12 @@ func (service *UserServiceImpl) RemoveUser(userId string) error {
 		}
 	}()
 
-	err = service.TransactionRepository.DeleteTransactionByUserId(userId)
+	err = service.TransactionRepository.DeleteTransactionByUserId(ctx, tx, user.UserID)
 	if err != nil {
 		return err
 	}
 
-	err = service.UserRepository.DeleteUser(tx, userId)
+	err = service.UserRepository.DeleteUser(ctx, tx, user.UserID)
 	if err != nil {
 		return err
 	}

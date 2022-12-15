@@ -12,16 +12,17 @@ import (
 
 type AuthControllerImpl struct {
 	auth.AuthService
+	*authMiddleware.AuthMiddleware
 }
 
-func NewAuthController(authService auth.AuthService) AuthController {
-	return &AuthControllerImpl{AuthService: authService}
+func NewAuthController(authService auth.AuthService, authMiddleware *authMiddleware.AuthMiddleware) AuthController {
+	return &AuthControllerImpl{AuthService: authService, AuthMiddleware: authMiddleware}
 }
 
 func (controller *AuthControllerImpl) Route(e *echo.Echo) {
 	api := e.Group("/dot-api")
 	api.POST("/login", controller.Login)
-	api.POST("/logout", controller.Logout, authMiddleware.CheckToken)
+	api.POST("/logout", controller.Logout, controller.AuthMiddleware.CheckToken)
 }
 
 func (controller *AuthControllerImpl) Login(c echo.Context) error {

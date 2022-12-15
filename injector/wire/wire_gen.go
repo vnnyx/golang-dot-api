@@ -11,6 +11,7 @@ import (
 	transaction2 "github.com/vnnyx/golang-dot-api/controller/transaction"
 	"github.com/vnnyx/golang-dot-api/controller/user"
 	"github.com/vnnyx/golang-dot-api/infrastructure"
+	"github.com/vnnyx/golang-dot-api/middleware"
 	auth2 "github.com/vnnyx/golang-dot-api/repository/auth"
 	"github.com/vnnyx/golang-dot-api/repository/transaction"
 	user2 "github.com/vnnyx/golang-dot-api/repository/user"
@@ -21,33 +22,36 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeUserController() user.UserController {
-	config := infrastructure.NewConfig()
+func InitializeUserController(configName string) user.UserController {
+	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	userRepository := user2.NewUserRepository(db)
 	transactionRepository := transaction.NewTransactionRepository(db)
 	userService := user3.NewUserService(userRepository, transactionRepository, db)
-	userController := user.NewUserController(userService)
+	authMiddleware := middleware.NewAuthMiddleware(configName)
+	userController := user.NewUserController(userService, authMiddleware)
 	return userController
 }
 
-func InitializeTransactionController() transaction2.TransactionController {
-	config := infrastructure.NewConfig()
+func InitializeTransactionController(configName string) transaction2.TransactionController {
+	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	transactionRepository := transaction.NewTransactionRepository(db)
 	userRepository := user2.NewUserRepository(db)
 	transactionService := transaction3.NewTransactionService(transactionRepository, userRepository)
-	transactionController := transaction2.NewTransactionController(transactionService)
+	authMiddleware := middleware.NewAuthMiddleware(configName)
+	transactionController := transaction2.NewTransactionController(transactionService, authMiddleware)
 	return transactionController
 }
 
-func InitializeAuthController() auth.AuthController {
-	config := infrastructure.NewConfig()
+func InitializeAuthController(configName string) auth.AuthController {
+	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	userRepository := user2.NewUserRepository(db)
-	client := infrastructure.NewRedisClient()
+	client := infrastructure.NewRedisClient(configName)
 	authRepository := auth2.NewAuthRepository(client)
 	authService := auth3.NewAuthService(config, db, userRepository, authRepository)
-	authController := auth.NewAuthController(authService)
+	authMiddleware := middleware.NewAuthMiddleware(configName)
+	authController := auth.NewAuthController(authService, authMiddleware)
 	return authController
 }

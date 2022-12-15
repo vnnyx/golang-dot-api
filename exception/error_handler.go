@@ -24,7 +24,7 @@ func generalError(err error, ctx echo.Context) {
 	switch err.Error() {
 	case "USER_NOT_FOUND":
 		_ = ctx.JSON(http.StatusNotFound, web.WebResponse{
-			Code:   http.StatusBadRequest,
+			Code:   http.StatusNotFound,
 			Status: web.NOT_FOUND,
 			Data:   nil,
 			Error: map[string]interface{}{
@@ -33,7 +33,7 @@ func generalError(err error, ctx echo.Context) {
 		})
 	case "TRANSACTION_NOT_FOUND":
 		_ = ctx.JSON(http.StatusNotFound, web.WebResponse{
-			Code:   http.StatusBadRequest,
+			Code:   http.StatusNotFound,
 			Status: web.NOT_FOUND,
 			Data:   nil,
 			Error: map[string]interface{}{

@@ -20,10 +20,10 @@ type Config struct {
 	RedisPassword          string `mapstructure:"REDIS_PASSWORD"`
 }
 
-func NewConfig() *Config {
+func NewConfig(configName string) *Config {
 	config := &Config{}
 	viper.AddConfigPath(".")
-	viper.SetConfigName(".env")
+	viper.SetConfigName(configName)
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()

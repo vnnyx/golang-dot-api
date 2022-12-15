@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
@@ -8,6 +9,7 @@ import (
 	"github.com/vnnyx/golang-dot-api/model/web"
 	"github.com/vnnyx/golang-dot-api/repository/transaction"
 	"github.com/vnnyx/golang-dot-api/repository/user"
+	"github.com/vnnyx/golang-dot-api/validation"
 )
 
 type TransactionServiceImpl struct {
@@ -19,13 +21,15 @@ func NewTransactionService(transactionRepository transaction.TransactionReposito
 	return &TransactionServiceImpl{TransactionRepository: transactionRepository, UserRepository: userRepository}
 }
 
-func (service *TransactionServiceImpl) CreateTransaction(request web.TransactionCreateRequest) (response web.TransactionResponse, err error) {
-	user, err := service.UserRepository.FindUserByID(request.UserID)
+func (service *TransactionServiceImpl) CreateTransaction(ctx context.Context, request web.TransactionCreateRequest) (response web.TransactionResponse, err error) {
+	validation.CreateTransactionValidation(request)
+
+	user, err := service.UserRepository.FindUserByID(ctx, request.UserID)
 	if err != nil {
 		return response, errors.New("USER_NOT_FOUND")
 	}
 
-	transaction, err := service.TransactionRepository.InsertTransaction(entity.Transaction{
+	transaction, err := service.TransactionRepository.InsertTransaction(ctx, entity.Transaction{
 		TransactionID: uuid.NewString(),
 		Name:          request.Name,
 		UserID:        user.UserID,
@@ -44,8 +48,8 @@ func (service *TransactionServiceImpl) CreateTransaction(request web.Transaction
 	return response, nil
 }
 
-func (service *TransactionServiceImpl) GetTransactionById(transactionId string) (response web.TransactionResponse, err error) {
-	transaction, err := service.TransactionRepository.FindTransactionByID(transactionId)
+func (service *TransactionServiceImpl) GetTransactionById(ctx context.Context, transactionId string) (response web.TransactionResponse, err error) {
+	transaction, err := service.TransactionRepository.FindTransactionByID(ctx, transactionId)
 	if err != nil {
 		return response, errors.New("TRANSACTION_NOT_FOUND")
 	}
@@ -59,8 +63,8 @@ func (service *TransactionServiceImpl) GetTransactionById(transactionId string) 
 	return response, nil
 }
 
-func (service *TransactionServiceImpl) GetAllTransaction() (response []web.TransactionResponse, err error) {
-	transactions, err := service.TransactionRepository.FindAllTransaction()
+func (service *TransactionServiceImpl) GetAllTransaction(ctx context.Context) (response []web.TransactionResponse, err error) {
+	transactions, err := service.TransactionRepository.FindAllTransaction(ctx)
 	if err != nil {
 		return response, err
 	}
@@ -76,8 +80,13 @@ func (service *TransactionServiceImpl) GetAllTransaction() (response []web.Trans
 	return response, nil
 }
 
-func (service *TransactionServiceImpl) GetTransactionByUserId(userId string) (response []web.TransactionResponse, err error) {
-	transactions, err := service.TransactionRepository.FindTransactionByUserId(userId)
+func (service *TransactionServiceImpl) GetTransactionByUserId(ctx context.Context, userId string) (response []web.TransactionResponse, err error) {
+	user, err := service.UserRepository.FindUserByID(ctx, userId)
+	if err != nil {
+		return response, errors.New("USER_NOT_FOUND")
+	}
+
+	transactions, err := service.TransactionRepository.FindTransactionByUserId(ctx, user.UserID)
 	if err != nil {
 		return response, err
 	}
@@ -93,13 +102,15 @@ func (service *TransactionServiceImpl) GetTransactionByUserId(userId string) (re
 	return response, nil
 }
 
-func (service *TransactionServiceImpl) UpdateTransaction(request web.TransactionUpdateRequest) (response web.TransactionResponse, err error) {
-	transaction, err := service.TransactionRepository.FindTransactionByID(request.TransactionID)
+func (service *TransactionServiceImpl) UpdateTransaction(ctx context.Context, request web.TransactionUpdateRequest) (response web.TransactionResponse, err error) {
+	validation.UpdateTransactionValidation(request)
+
+	transaction, err := service.TransactionRepository.FindTransactionByID(ctx, request.TransactionID)
 	if err != nil {
 		return response, errors.New("TRANSACTION_NOT_FOUND")
 	}
 
-	transaction, err = service.TransactionRepository.UpdateTransaction(entity.Transaction{
+	transaction, err = service.TransactionRepository.UpdateTransaction(ctx, entity.Transaction{
 		TransactionID: transaction.TransactionID,
 		Name:          request.Name,
 		UserID:        transaction.UserID,
@@ -118,10 +129,10 @@ func (service *TransactionServiceImpl) UpdateTransaction(request web.Transaction
 	return response, nil
 }
 
-func (service *TransactionServiceImpl) RemoveTransaction(transactionId string) error {
-	transaction, err := service.TransactionRepository.FindTransactionByID(transactionId)
+func (service *TransactionServiceImpl) RemoveTransaction(ctx context.Context, transactionId string) error {
+	transaction, err := service.TransactionRepository.FindTransactionByID(ctx, transactionId)
 	if err != nil {
 		return errors.New("TRANSACTION_NOT_FOUND")
 	}
-	return service.TransactionRepository.DeleteTransaction(transaction.TransactionID)
+	return service.TransactionRepository.DeleteTransaction(ctx, transaction.TransactionID)
 }

@@ -9,6 +9,7 @@ import (
 	transactionController "github.com/vnnyx/golang-dot-api/controller/transaction"
 	userController "github.com/vnnyx/golang-dot-api/controller/user"
 	"github.com/vnnyx/golang-dot-api/infrastructure"
+	authMiddleware "github.com/vnnyx/golang-dot-api/middleware"
 	authRepository "github.com/vnnyx/golang-dot-api/repository/auth"
 	transactionRepository "github.com/vnnyx/golang-dot-api/repository/transaction"
 	userRepository "github.com/vnnyx/golang-dot-api/repository/user"
@@ -17,37 +18,40 @@ import (
 	userService "github.com/vnnyx/golang-dot-api/service/user"
 )
 
-func InitializeUserController() userController.UserController {
+func InitializeUserController(configName string) userController.UserController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
 		transactionRepository.NewTransactionRepository,
 		userRepository.NewUserRepository,
+		authMiddleware.NewAuthMiddleware,
 		userService.NewUserService,
 		userController.NewUserController,
 	)
 	return nil
 }
 
-func InitializeTransactionController() transactionController.TransactionController {
+func InitializeTransactionController(configName string) transactionController.TransactionController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
 		transactionRepository.NewTransactionRepository,
 		userRepository.NewUserRepository,
+		authMiddleware.NewAuthMiddleware,
 		transactionService.NewTransactionService,
 		transactionController.NewTransactionController,
 	)
 	return nil
 }
 
-func InitializeAuthController() authController.AuthController {
+func InitializeAuthController(configName string) authController.AuthController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
 		infrastructure.NewRedisClient,
 		userRepository.NewUserRepository,
 		authRepository.NewAuthRepository,
+		authMiddleware.NewAuthMiddleware,
 		authService.NewAuthService,
 		authController.NewAuthController,
 	)
