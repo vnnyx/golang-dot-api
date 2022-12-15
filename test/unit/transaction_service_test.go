@@ -3,7 +3,6 @@ package unit
 import (
 	"context"
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -410,8 +409,6 @@ func TestTransactionService_GetTransactionByUserId(t *testing.T) {
 				t.Errorf("service.GetTransactionByUserId() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			fmt.Println(reflect.TypeOf(got))
-			fmt.Println(reflect.TypeOf(tt.want))
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("service.GetTransactionByUserId() = %v, want %v", got, tt.want)
 			}
