@@ -24,7 +24,7 @@ jobs:
       run: go mod tidy
 
     - name: Test
-      run: cd /test/unit && make test
+      run: cd test/unit && make test
 
     - name: Build
       run: go build -v ./...
