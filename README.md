@@ -27,6 +27,13 @@ Design pattern di atas merupakan implementasi dari clean architecture by uncle b
 
 Saya melakukan deployment terhadap service ini dan bisa diakses melalui `https://cloud.vnnyx.my.id/dot-api/{ENDPOINT}`
 
+## Data For Login
+
+```
+username: user_sample
+password: password
+```
+
 ## List Endpoint
 
 ```
