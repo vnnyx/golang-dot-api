@@ -11,20 +11,23 @@ import (
 	"github.com/vnnyx/golang-dot-api/infrastructure"
 	"github.com/vnnyx/golang-dot-api/model/web"
 	"github.com/vnnyx/golang-dot-api/repository/auth"
+	"github.com/vnnyx/golang-dot-api/repository/user"
 )
 
 type DecodedStructure struct {
-	UserID     string `json:"user_id"`
+	UserID     string `json:"id"`
 	Username   string `json:"username"`
 	AccessUUID string `json:"access_uuid"`
 }
 
 type AuthMiddleware struct {
+	auth.AuthRepository
+	user.UserRepository
 	ConfigName string
 }
 
-func NewAuthMiddleware(configName string) *AuthMiddleware {
-	return &AuthMiddleware{ConfigName: configName}
+func NewAuthMiddleware(authRepository auth.AuthRepository, userRepository user.UserRepository, configName string) *AuthMiddleware {
+	return &AuthMiddleware{AuthRepository: authRepository, UserRepository: userRepository, ConfigName: configName}
 }
 
 func (middleware *AuthMiddleware) ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
@@ -48,28 +51,6 @@ func (middleware *AuthMiddleware) ValidateToken(encodedToken string) (token *jwt
 	}
 	return token, nil
 }
-
-// func ValidateToken(encodedToken string) (token *jwt.Token, errData error) {
-// 	configuration := infrastructure.NewConfig(".env")
-// 	jwtPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(configuration.JWTPublicKey))
-
-// 	if err != nil {
-// 		return token, err
-// 	}
-
-// 	tokenString := encodedToken
-// 	claims := jwt.MapClaims{}
-// 	token, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-// 		return jwtPublicKey, nil
-// 	})
-// 	if err != nil {
-// 		return token, err
-// 	}
-// 	if !token.Valid {
-// 		return token, errors.New("invalid token")
-// 	}
-// 	return token, nil
-// }
 
 func (middleware *AuthMiddleware) DecodeToken(encodedToken string) (decodedResult DecodedStructure, errData error) {
 	configuration := infrastructure.NewConfig(middleware.ConfigName)
@@ -120,8 +101,12 @@ func (middleware *AuthMiddleware) CheckToken(next echo.HandlerFunc) echo.Handler
 		if err != nil {
 			return errors.New(web.UNAUTHORIZATION)
 		}
+		_, err = middleware.UserRepository.FindUserByID(context.Background(), decodeRes.UserID)
+		if err != nil {
+			return errors.New(web.UNAUTHORIZATION)
+		}
 
-		_, err = auth.NewAuthRepository(infrastructure.NewRedisClient(middleware.ConfigName)).GetToken(context.Background(), decodeRes.AccessUUID)
+		_, err = middleware.AuthRepository.GetToken(context.TODO(), decodeRes.AccessUUID)
 		if err != nil {
 			return errors.New(web.UNAUTHORIZATION)
 		}
