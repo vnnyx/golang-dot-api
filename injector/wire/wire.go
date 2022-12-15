@@ -22,8 +22,10 @@ func InitializeUserController(configName string) userController.UserController {
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
+		infrastructure.NewRedisClient,
 		transactionRepository.NewTransactionRepository,
 		userRepository.NewUserRepository,
+		authRepository.NewAuthRepository,
 		authMiddleware.NewAuthMiddleware,
 		userService.NewUserService,
 		userController.NewUserController,
@@ -35,8 +37,10 @@ func InitializeTransactionController(configName string) transactionController.Tr
 	wire.Build(
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
+		infrastructure.NewRedisClient,
 		transactionRepository.NewTransactionRepository,
 		userRepository.NewUserRepository,
+		authRepository.NewAuthRepository,
 		authMiddleware.NewAuthMiddleware,
 		transactionService.NewTransactionService,
 		transactionController.NewTransactionController,
