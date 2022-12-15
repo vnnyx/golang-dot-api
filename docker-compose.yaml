@@ -10,4 +10,8 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT}:${APP_PORT}"
     networks:
-      - root_dot
+      - dot_net
+networks:
+  dot_net:
+    name: root_dot
+    external: true
