@@ -63,5 +63,13 @@ DELETE /transaction/id
 
 ![integration_test](https://imgur.com/0EdCmp3.png)
 
+### Unit Test
+
+![unit_test](https://imgur.com/05MuWmO.png)
+
+## Deployment
+
+![deployment](https://imgur.com/oliaMaR.png)
+
 ## API Docs
 [API Docs](https://documenter.getpostman.com/view/24450154/2s8YzWRfeC)
