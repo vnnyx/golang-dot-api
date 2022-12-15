@@ -57,7 +57,7 @@ DELETE /transaction/id
 
 ```
 
-## Tesing
+## Testing
 
 ### Integration Test
 
