@@ -499,6 +499,61 @@ func TestUserService_RemoveUser(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Error When Find User By ID",
+			args: args{
+				ctx: context.TODO(),
+				req: "123",
+			},
+			mockFindUserByIdRepository: &mockFindUserByIdRepository{
+				res: entity.User{},
+				err: errors.New("error"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Error When Delete Transaction By User ID",
+			args: args{
+				ctx: context.TODO(),
+				req: "123",
+			},
+			mockFindUserByIdRepository: &mockFindUserByIdRepository{
+				res: entity.User{
+					UserID:    "123",
+					Username:  "username_test",
+					Email:     "email@test.com",
+					Handphone: "08123456789",
+				},
+				err: nil,
+			},
+			mockDeleteTransactionByUserIdRespository: &mockDeleteTransactionByUserIdRespository{
+				err: errors.New("error"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Error When Delete User By ID",
+			args: args{
+				ctx: context.TODO(),
+				req: "123",
+			},
+			mockFindUserByIdRepository: &mockFindUserByIdRepository{
+				res: entity.User{
+					UserID:    "123",
+					Username:  "username_test",
+					Email:     "email@test.com",
+					Handphone: "08123456789",
+				},
+				err: nil,
+			},
+			mockDeleteTransactionByUserIdRespository: &mockDeleteTransactionByUserIdRespository{
+				err: nil,
+			},
+			mockDeleteUserRepository: &mockDeleteUserRepository{
+				err: errors.New("error"),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -518,15 +573,20 @@ func TestUserService_RemoveUser(t *testing.T) {
 			}
 
 			sqlmock.ExpectBegin()
-			if tt.mockDeleteTransactionByUserIdRespository.err != nil || tt.mockDeleteUserRepository.err != nil {
-				sqlmock.ExpectRollback()
-			} else {
-				sqlmock.ExpectCommit()
-			}
 			if tt.mockDeleteTransactionByUserIdRespository != nil {
+				if tt.mockDeleteTransactionByUserIdRespository.err != nil {
+					sqlmock.ExpectRollback()
+				} else {
+					sqlmock.ExpectCommit()
+				}
 				mockTransactionRepository.On("DeleteTransactionByUserId", tt.args.ctx, mock.Anything, tt.args.req).Return(tt.mockDeleteTransactionByUserIdRespository.err)
 			}
 			if tt.mockDeleteUserRepository != nil {
+				if tt.mockDeleteUserRepository.err != nil {
+					sqlmock.ExpectRollback()
+				} else {
+					sqlmock.ExpectCommit()
+				}
 				mockUserRepository.On("DeleteUser", tt.args.ctx, mock.Anything, tt.args.req).Return(tt.mockDeleteUserRepository.err)
 			}
 
