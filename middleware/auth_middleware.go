@@ -15,7 +15,7 @@ import (
 )
 
 type DecodedStructure struct {
-	UserID     string `json:"user_id"`
+	UserID     string `json:"id"`
 	Username   string `json:"username"`
 	AccessUUID string `json:"access_uuid"`
 }
