@@ -9,32 +9,5 @@ services:
     container_name: dot-api
     ports:
       - "127.0.0.1:${APP_PORT}:${APP_PORT}"
-    depends_on:
-      - mysql
-      - redis
     networks:
-      - dot
-
-  mysql:
-    image: mysql:8.0
-    restart: on-failure
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: dot_database
-    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
-    volumes:
-      - database_mysql:/var/lib/mysql
-    networks:
-      - dot
-
-  redis:
-    image: redis:alpine
-    restart: on-failure
-    networks:
-      - dot
-
-volumes:
-  database_mysql:
-networks:
-  dot:
-    driver: bridge
+      - root_dot

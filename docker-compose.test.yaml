@@ -6,32 +6,5 @@ services:
       context: .
       dockerfile: Dockerfile.tests
     restart: on-failure
-    depends_on:
-      - mysql
-      - redis
     networks:
-      - integration-test
-
-  mysql:
-    image: mysql:8.0
-    restart: on-failure
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: dot_test_database
-    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
-    volumes:
-      - database_mysql:/var/lib/mysql
-    networks:
-      - integration-test
-
-  redis:
-    image: redis:alpine
-    restart: on-failure
-    networks:
-      - integration-test
-
-volumes:
-  database_mysql:
-networks:
-  integration-test:
-    driver: bridge
+      - root_dot
