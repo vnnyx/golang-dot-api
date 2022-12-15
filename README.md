@@ -57,5 +57,11 @@ DELETE /transaction/id
 
 ```
 
+## Tesing
+
+### Integration Test
+
+![integration_test](https://imgur.com/0EdCmp3.png)
+
 ## API Docs
 [API Docs](https://documenter.getpostman.com/view/24450154/2s8YzWRfeC)
