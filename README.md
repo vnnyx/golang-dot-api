@@ -20,7 +20,7 @@ The design pattern above is an implementation of clean architecture by uncle bob
 ## Setup
 
 1. copy .env.example to .env
-2. go mod tidy
+2. run go mod tidy
 3. run main app with `go run cmd/app/main.go`
 
 ## Live Demo
