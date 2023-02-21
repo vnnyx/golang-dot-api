@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/vnnyx/golang-dot-api/model/entity"
+	"github.com/vnnyx/golang-dot-api/model/web"
+	"github.com/vnnyx/golang-dot-api/util"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +23,7 @@ func (repository *UserRepositoryImpl) InsertUser(ctx context.Context, user entit
 }
 
 func (repository *UserRepositoryImpl) FindUserByID(ctx context.Context, userId string) (user entity.User, err error) {
-	err = repository.DB.WithContext(ctx).Where("user_id", userId).First(&user).Error
+	err = repository.DB.WithContext(ctx).Where("id", userId).First(&user).Error
 	return user, err
 }
 
@@ -30,18 +32,18 @@ func (repository *UserRepositoryImpl) FindUserByUsername(ctx context.Context, us
 	return user, err
 }
 
-func (repository *UserRepositoryImpl) FindAllUser(ctx context.Context) (users []entity.User, err error) {
-	err = repository.DB.WithContext(ctx).Find(&users).Error
+func (repository *UserRepositoryImpl) FindAllUser(ctx context.Context, p *web.Pagination) (users []entity.User, err error) {
+	err = repository.DB.WithContext(ctx).Scopes(util.Paginate(&users, p, repository.DB)).Find(&users).Error
 	return users, err
 }
 
 func (repository *UserRepositoryImpl) UpdateUser(ctx context.Context, user entity.User) (entity.User, error) {
-	err := repository.DB.WithContext(ctx).Where("user_id", user.UserID).Updates(&user).Error
+	err := repository.DB.WithContext(ctx).Where("id", user.UserID).Updates(&user).Error
 	return user, err
 }
 
 func (repository *UserRepositoryImpl) DeleteUser(ctx context.Context, tx *gorm.DB, userId string) error {
-	return tx.WithContext(ctx).Where("user_id", userId).Delete(&entity.User{}).Error
+	return tx.WithContext(ctx).Where("id", userId).Delete(&entity.User{}).Error
 }
 
 func (repository *UserRepositoryImpl) DeleteAllUser(ctx context.Context) error {

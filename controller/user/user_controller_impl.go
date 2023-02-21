@@ -2,6 +2,7 @@ package user
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/vnnyx/golang-dot-api/exception"
@@ -57,7 +58,11 @@ func (controller *UserControllerImpl) GetUserById(c echo.Context) error {
 }
 
 func (controller *UserControllerImpl) GetAllUser(c echo.Context) error {
-	response, err := controller.UserService.GetAllUser(c.Request().Context())
+	var p web.Pagination
+	p.Limit, _ = strconv.Atoi(c.QueryParam("limit"))
+	p.Page, _ = strconv.Atoi(c.QueryParam("page"))
+	p.Sort = c.QueryParam("sort")
+	response, err := controller.UserService.GetAllUser(c.Request().Context(), &p)
 	exception.PanicIfNeeded(err)
 
 	return c.JSON(http.StatusOK, web.WebResponse{

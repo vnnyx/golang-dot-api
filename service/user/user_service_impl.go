@@ -75,14 +75,15 @@ func (service *UserServiceImpl) GetUserById(ctx context.Context, userId string) 
 	return response, nil
 }
 
-func (service *UserServiceImpl) GetAllUser(ctx context.Context) (response []web.UserResponse, err error) {
-	users, err := service.UserRepository.FindAllUser(ctx)
+func (service *UserServiceImpl) GetAllUser(ctx context.Context, p *web.Pagination) (response *web.Pagination, err error) {
+	users, err := service.UserRepository.FindAllUser(ctx, p)
 	if err != nil {
 		return response, err
 	}
 
+	rows := make([]web.UserResponse, 0)
 	for _, user := range users {
-		response = append(response, web.UserResponse{
+		rows = append(rows, web.UserResponse{
 			UserID:    user.UserID,
 			Username:  user.Username,
 			Email:     user.Email,
@@ -90,7 +91,14 @@ func (service *UserServiceImpl) GetAllUser(ctx context.Context) (response []web.
 		})
 	}
 
-	return response, nil
+	return &web.Pagination{
+		Limit:      p.GetLimit(),
+		Page:       p.GetPage(),
+		Sort:       p.GetSort(),
+		TotalRows:  p.TotalRows,
+		TotalPages: p.TotalPages,
+		Rows:       rows,
+	}, nil
 }
 
 func (service *UserServiceImpl) UpdateUserProfile(ctx context.Context, request web.UserUpdateProfileRequest) (response web.UserResponse, err error) {
