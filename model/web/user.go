@@ -15,6 +15,14 @@ type UserResponse struct {
 	Handphone string `json:"handphone"`
 }
 
+type UserResponseWithLastTransaction struct {
+	UserID      string              `json:"user_id"`
+	Username    string              `json:"username"`
+	Email       string              `json:"email"`
+	Handphone   string              `json:"handphone"`
+	Transaction TransactionResponse `json:"last_transaction"`
+}
+
 type UserUpdateProfileRequest struct {
 	UserID    string
 	Username  string `json:"username"`

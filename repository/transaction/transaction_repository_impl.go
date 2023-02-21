@@ -31,7 +31,7 @@ func (repository *TransactionRepositoryImpl) FindAllTransaction(ctx context.Cont
 }
 
 func (repository *TransactionRepositoryImpl) FindTransactionByUserId(ctx context.Context, userId string) (transactions []entity.Transaction, err error) {
-	err = repository.DB.WithContext(ctx).Where("user_id", userId).Find(&transactions).Error
+	err = repository.DB.WithContext(ctx).Where("user_id", userId).Order("created_at desc").Find(&transactions).Error
 	return transactions, err
 }
 

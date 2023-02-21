@@ -7,6 +7,7 @@ type UserController interface {
 	CreateUser(c echo.Context) error
 	GetUserById(c echo.Context) error
 	GetAllUser(c echo.Context) error
+	GetAllUserWithLastTransaction(c echo.Context) error
 	UpdateUserProfile(c echo.Context) error
 	RemoveUser(c echo.Context) error
 }

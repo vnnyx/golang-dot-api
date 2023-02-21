@@ -25,6 +25,7 @@ func (controller *UserControllerImpl) Route(e *echo.Echo) {
 	api.POST("", controller.CreateUser)
 	api.GET("/:id", controller.GetUserById)
 	api.GET("", controller.GetAllUser)
+	api.GET("/transaction", controller.GetAllUserWithLastTransaction)
 	api.PUT("/:id", controller.UpdateUserProfile, controller.AuthMiddleware.CheckToken)
 	api.DELETE("/:id", controller.RemoveUser)
 }
@@ -65,6 +66,16 @@ func (controller *UserControllerImpl) GetAllUser(c echo.Context) error {
 	response, err := controller.UserService.GetAllUser(c.Request().Context(), &p)
 	exception.PanicIfNeeded(err)
 
+	return c.JSON(http.StatusOK, web.WebResponse{
+		Code:   http.StatusOK,
+		Status: web.OK,
+		Data:   response,
+	})
+}
+
+func (controller *UserControllerImpl) GetAllUserWithLastTransaction(c echo.Context) error {
+	response, err := controller.UserService.GetAllUserWithLastTransaction(c.Request().Context())
+	exception.PanicIfNeeded(err)
 	return c.JSON(http.StatusOK, web.WebResponse{
 		Code:   http.StatusOK,
 		Status: web.OK,

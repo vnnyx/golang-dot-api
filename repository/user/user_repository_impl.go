@@ -33,7 +33,11 @@ func (repository *UserRepositoryImpl) FindUserByUsername(ctx context.Context, us
 }
 
 func (repository *UserRepositoryImpl) FindAllUser(ctx context.Context, p *web.Pagination) (users []entity.User, err error) {
-	err = repository.DB.WithContext(ctx).Scopes(util.Paginate(&users, p, repository.DB)).Find(&users).Error
+	if p == nil {
+		err = repository.DB.WithContext(ctx).Find(&users).Error
+	} else {
+		err = repository.DB.WithContext(ctx).Scopes(util.Paginate(&users, p, repository.DB)).Find(&users).Error
+	}
 	return users, err
 }
 

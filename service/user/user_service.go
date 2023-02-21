@@ -9,6 +9,7 @@ import (
 type UserService interface {
 	CreateUser(ctx context.Context, request web.UserCreateRequest) (response web.UserResponse, err error)
 	GetUserById(ctx context.Context, userId string) (response web.UserResponse, err error)
+	GetAllUserWithLastTransaction(ctx context.Context) (response []web.UserResponseWithLastTransaction, err error)
 	GetAllUser(ctx context.Context, p *web.Pagination) (response *web.Pagination, err error)
 	UpdateUserProfile(ctx context.Context, request web.UserUpdateProfileRequest) (response web.UserResponse, err error)
 	RemoveUser(ctx context.Context, userId string) error

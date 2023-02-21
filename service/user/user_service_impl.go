@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/vnnyx/golang-dot-api/model/entity"
@@ -164,4 +165,61 @@ func (service *UserServiceImpl) RemoveUser(ctx context.Context, userId string) e
 	}
 
 	return nil
+}
+
+func (service *UserServiceImpl) GetAllUserWithLastTransaction(ctx context.Context) (response []web.UserResponseWithLastTransaction, err error) {
+	var wg sync.WaitGroup
+	var transactions []entity.Transaction
+	var users []entity.User
+	chUser := make(chan web.UserResponse, 100)
+	chUserWithLastTransaction := make(chan web.UserResponseWithLastTransaction, 100)
+	wg.Add(2)
+	go func() {
+		var u web.UserResponse
+		defer wg.Done()
+		users, _ = service.UserRepository.FindAllUser(ctx, nil)
+		for _, user := range users {
+			u = web.UserResponse{
+				UserID:    user.UserID,
+				Username:  user.Username,
+				Email:     user.Email,
+				Handphone: user.Handphone,
+			}
+			chUser <- u
+		}
+		close(chUser)
+	}()
+	go func() {
+		defer wg.Done()
+		for user := range chUser {
+			transactions, _ = service.TransactionRepository.FindTransactionByUserId(ctx, user.UserID)
+			if len(transactions) > 0 {
+				t := web.TransactionResponse{
+					TransactionID: transactions[0].TransactionID,
+					Name:          transactions[0].Name,
+					UserID:        transactions[0].UserID,
+				}
+				ut := web.UserResponseWithLastTransaction{
+					UserID:      user.UserID,
+					Username:    user.Username,
+					Email:       user.Email,
+					Handphone:   user.Handphone,
+					Transaction: t,
+				}
+				chUserWithLastTransaction <- ut
+			}
+		}
+		close(chUserWithLastTransaction)
+	}()
+	wg.Wait()
+	for data := range chUserWithLastTransaction {
+		response = append(response, web.UserResponseWithLastTransaction{
+			UserID:      data.UserID,
+			Username:    data.Username,
+			Email:       data.Email,
+			Handphone:   data.Handphone,
+			Transaction: data.Transaction,
+		})
+	}
+	return response, nil
 }
