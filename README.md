@@ -6,7 +6,7 @@
 - Echo V4
 - Redis for caching
 - Golang ozzo-validator
-- gogle wire for dependency injector
+- Google wire for dependency injector
 - Mockery for mock generator
 - Docker and docker compose for deployment
 - Jenkins for deployment
@@ -15,17 +15,17 @@
 
 **Model > Repository > Service > Controller (Echo REST API)**
 
-Design pattern di atas merupakan implementasi dari clean architecture by uncle bob. Clean architecture sendiri memiliki beberapa layer yaitu entities, use case, controller, dan framework & driver. Alasan menggunakan design pattern tersebut adalah mudah dalam maintenance nya.
+The design pattern above is an implementation of clean architecture by uncle bob. The clean architecture has several layers: entities, use cases, controllers, and frameworks & drivers. The reason for using this design pattern is that it is easy to maintain.
 
 ## Setup
 
 1. copy .env.example to .env
-2. go mod tidy
+2. run go mod tidy
 3. run main app with `go run cmd/app/main.go`
 
 ## Live Demo
 
-Saya melakukan deployment terhadap service ini dan bisa diakses melalui `https://cloud.vnnyx.my.id/dot-api/{ENDPOINT}`
+I deployed this service, and you can access it via `https://cloud.vnnyx.my.id/dot-api/{ENDPOINT}`
 
 ## Data For Login
 
