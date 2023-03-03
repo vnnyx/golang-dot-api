@@ -282,5 +282,5 @@ func (service *UserServiceImpl) ValidateOTP(ctx context.Context, check web.UserE
 		}
 		return response, nil
 	}
-	return response, err
+	return response, errors.New("FAILED_TO_VERIFY")
 }
