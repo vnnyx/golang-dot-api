@@ -265,6 +265,9 @@ func (service *UserServiceImpl) SendOTP(ctx context.Context, id string, user ent
 
 func (service *UserServiceImpl) ValidateOTP(ctx context.Context, check web.UserEmailVerification) (response web.UserResponse, err error) {
 	otp, got, err := service.UserRepository.GetDataToVerify(ctx, check.UserID)
+	if err != nil {
+		return response, errors.New("FAILED_TO_VERIFY")
+	}
 	if strconv.Itoa(check.OTP) == otp {
 		user, err := service.UserRepository.InsertUser(ctx, got)
 		response = web.UserResponse{
