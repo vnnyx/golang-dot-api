@@ -1,15 +1,22 @@
 package user
 
 import (
+	"bytes"
 	"context"
+	"embed"
 	"errors"
+	"math/rand"
+	"strconv"
 	"sync"
+	"text/template"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vnnyx/golang-dot-api/model/entity"
 	"github.com/vnnyx/golang-dot-api/model/web"
 	"github.com/vnnyx/golang-dot-api/repository/transaction"
 	"github.com/vnnyx/golang-dot-api/repository/user"
+	"github.com/vnnyx/golang-dot-api/util"
 	"github.com/vnnyx/golang-dot-api/validation"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -25,7 +32,7 @@ func NewUserService(userRepository user.UserRepository, transactionRepository tr
 	return &UserServiceImpl{UserRepository: userRepository, TransactionRepository: transactionRepository, DB: DB}
 }
 
-func (service *UserServiceImpl) CreateUser(ctx context.Context, request web.UserCreateRequest) (response web.UserResponse, err error) {
+func (service *UserServiceImpl) CreateUser(ctx context.Context, request web.UserCreateRequest) (response web.UserEmailVerification, err error) {
 	validation.CreateUserValidation(request)
 
 	if request.Password != request.PasswordConfirmation {
@@ -45,16 +52,9 @@ func (service *UserServiceImpl) CreateUser(ctx context.Context, request web.User
 		Password:  string(password),
 	}
 
-	user, err = service.UserRepository.InsertUser(ctx, user)
+	err = service.SendOTP(ctx, user.UserID, user, &response)
 	if err != nil {
 		return response, err
-	}
-
-	response = web.UserResponse{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Email:     user.Email,
-		Handphone: user.Handphone,
 	}
 
 	return response, nil
@@ -76,8 +76,8 @@ func (service *UserServiceImpl) GetUserById(ctx context.Context, userId string) 
 	return response, nil
 }
 
-func (service *UserServiceImpl) GetAllUser(ctx context.Context, p *web.Pagination) (response *web.Pagination, err error) {
-	users, err := service.UserRepository.FindAllUser(ctx, p)
+func (service *UserServiceImpl) GetAllUser(ctx context.Context, p web.Pagination) (response *web.Pagination, err error) {
+	users, err := service.UserRepository.FindAllUser(ctx, &p)
 	if err != nil {
 		return response, err
 	}
@@ -96,8 +96,8 @@ func (service *UserServiceImpl) GetAllUser(ctx context.Context, p *web.Paginatio
 		Limit:      p.GetLimit(),
 		Page:       p.GetPage(),
 		Sort:       p.GetSort(),
-		TotalRows:  p.TotalRows,
-		TotalPages: p.TotalPages,
+		TotalRows:  p.GetTotalRows(),
+		TotalPages: p.GetTotalPages(),
 		Rows:       rows,
 	}, nil
 }
@@ -167,17 +167,15 @@ func (service *UserServiceImpl) RemoveUser(ctx context.Context, userId string) e
 	return nil
 }
 
-func (service *UserServiceImpl) GetAllUserWithLastTransaction(ctx context.Context) (response []web.UserResponseWithLastTransaction, err error) {
+func (service *UserServiceImpl) GetAllUserWithLastTransaction(ctx context.Context, p web.Pagination) (response *web.Pagination, err error) {
 	var wg sync.WaitGroup
-	var transactions []entity.Transaction
-	var users []entity.User
 	chUser := make(chan web.UserResponse, 100)
 	chUserWithLastTransaction := make(chan web.UserResponseWithLastTransaction, 100)
 	wg.Add(2)
 	go func() {
 		var u web.UserResponse
 		defer wg.Done()
-		users, _ = service.UserRepository.FindAllUser(ctx, nil)
+		users, _ := service.UserRepository.FindAllUser(ctx, &p)
 		for _, user := range users {
 			u = web.UserResponse{
 				UserID:    user.UserID,
@@ -192,7 +190,7 @@ func (service *UserServiceImpl) GetAllUserWithLastTransaction(ctx context.Contex
 	go func() {
 		defer wg.Done()
 		for user := range chUser {
-			transactions, _ = service.TransactionRepository.FindTransactionByUserId(ctx, user.UserID)
+			transactions, _ := service.TransactionRepository.FindTransactionByUserId(ctx, user.UserID)
 			if len(transactions) > 0 {
 				t := web.TransactionResponse{
 					TransactionID: transactions[0].TransactionID,
@@ -212,8 +210,9 @@ func (service *UserServiceImpl) GetAllUserWithLastTransaction(ctx context.Contex
 		close(chUserWithLastTransaction)
 	}()
 	wg.Wait()
+	rows := make([]web.UserResponseWithLastTransaction, 0)
 	for data := range chUserWithLastTransaction {
-		response = append(response, web.UserResponseWithLastTransaction{
+		rows = append(rows, web.UserResponseWithLastTransaction{
 			UserID:      data.UserID,
 			Username:    data.Username,
 			Email:       data.Email,
@@ -221,5 +220,67 @@ func (service *UserServiceImpl) GetAllUserWithLastTransaction(ctx context.Contex
 			Transaction: data.Transaction,
 		})
 	}
-	return response, nil
+	return &web.Pagination{
+		Limit:      p.GetLimit(),
+		Page:       p.GetPage(),
+		Sort:       p.GetSort(),
+		TotalRows:  p.GetTotalRows(),
+		TotalPages: p.GetTotalPages(),
+		Rows:       rows,
+	}, nil
+}
+
+//go:embed templates/*.gohtml
+var templates embed.FS
+
+func (service *UserServiceImpl) SendOTP(ctx context.Context, id string, user entity.User, verify *web.UserEmailVerification) error {
+	OTP := rand.Intn(9999-1000) + 1000
+	verify.UserID = id
+	verify.OTP = OTP
+	verify.ExpiredAt = time.Until(time.Now().Add(5 * time.Minute))
+	err := service.UserRepository.StoreToRedis(ctx, id, *verify, user)
+	if err != nil {
+		return err
+	}
+	t, err := template.ParseFS(templates, "templates/*.gohtml")
+	if err != nil {
+		return err
+	}
+	buff := new(bytes.Buffer)
+	err = t.ExecuteTemplate(buff, "otp.gohtml", map[string]interface{}{
+		"Username": user.Username,
+		"Otp":      OTP,
+	})
+	if err != nil {
+		return err
+	}
+	go func() {
+		err = util.SendEmailTo(user.Email, buff)
+		if err != nil {
+			return
+		}
+	}()
+	return err
+}
+
+func (service *UserServiceImpl) ValidateOTP(ctx context.Context, check web.UserEmailVerification) (response web.UserResponse, err error) {
+	otp, got, err := service.UserRepository.GetDataToVerify(ctx, check.UserID)
+	if strconv.Itoa(check.OTP) == otp {
+		user, err := service.UserRepository.InsertUser(ctx, got)
+		response = web.UserResponse{
+			UserID:    user.UserID,
+			Username:  user.Username,
+			Email:     user.Email,
+			Handphone: user.Handphone,
+		}
+		if err != nil {
+			return response, err
+		}
+		err = service.UserRepository.DeleteCache(ctx, user.UserID)
+		if err != nil {
+			return response, err
+		}
+		return response, nil
+	}
+	return response, err
 }

@@ -1,5 +1,7 @@
 package web
 
+import "time"
+
 type UserCreateRequest struct {
 	Username             string `json:"username"`
 	Email                string `json:"email"`
@@ -13,6 +15,12 @@ type UserResponse struct {
 	Username  string `json:"username"`
 	Email     string `json:"email"`
 	Handphone string `json:"handphone"`
+}
+
+type UserEmailVerification struct {
+	UserID    string        `json:"user_id"`
+	OTP       int           `json:"-"`
+	ExpiredAt time.Duration `json:"expired_at"`
 }
 
 type UserResponseWithLastTransaction struct {

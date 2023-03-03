@@ -8,7 +8,7 @@ type User struct {
 	Email     string    `gorm:"column:email;type:varchar(100);unique"`
 	Handphone string    `gorm:"column:handphone;type:varchar(20)"`
 	Password  string    `gorm:"column:password;type:varchar(255)"`
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime"`
+	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"-"`
 }
 
 func (User) TableName() string {

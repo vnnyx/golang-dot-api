@@ -1,5 +1,11 @@
 package web
 
+import (
+	"math"
+
+	"gorm.io/gorm"
+)
+
 const (
 	DEFAULT_LIMIT = 10
 	DEFAULT_PAGE  = 1
@@ -52,4 +58,12 @@ func (p *Pagination) GetTotalRows() int64 {
 
 func (p *Pagination) GetTotalPages() int {
 	return int(p.TotalPages)
+}
+
+func (p *Pagination) SetPagination(value interface{}, db *gorm.DB) {
+	var totalRows int64
+	db.Model(value).Count(&totalRows)
+	p.TotalRows = totalRows
+	totalPages := int(math.Ceil(float64(totalRows) / float64(p.GetLimit())))
+	p.TotalPages = totalPages
 }

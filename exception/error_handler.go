@@ -83,6 +83,7 @@ func generalError(err error, ctx echo.Context) {
 			Data:   nil,
 			Error: map[string]interface{}{
 				"message": "Internal server error",
+				"detail":  err,
 			},
 		})
 	}
