@@ -18,6 +18,10 @@ type Config struct {
 	JWTMinute              int    `mapstructure:"JWT_MINUTE"`
 	RedisHost              string `mapstructure:"REDIS_HOST"`
 	RedisPassword          string `mapstructure:"REDIS_PASSWORD"`
+	MailHost               string `mapstructure:"MAIL_HOST"`
+	MailPort               int    `mapstructure:"MAIL_PORT"`
+	MailUsername           string `mapstructure:"MAIL_USERNAME"`
+	MailPassword           string `mapstructure:"MAIL_PASSWORD"`
 }
 
 func NewConfig(configName string) *Config {
