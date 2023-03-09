@@ -16,7 +16,7 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user entity.User) (entity.User, error)
 	DeleteUser(ctx context.Context, tx *gorm.DB, userId string) error
 	DeleteAllUser(ctx context.Context) error
-	StoreToRedis(ctx context.Context, id string, token web.UserEmailVerification, user entity.User) error
+	StoreToRedis(ctx context.Context, token web.UserEmailVerification, user entity.User) error
 	GetDataToVerify(ctx context.Context, id string) (otp string, user entity.User, err error)
 	DeleteCache(ctx context.Context, id string) error
 }

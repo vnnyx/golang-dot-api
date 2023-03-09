@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 
+	"github.com/vnnyx/golang-dot-api/model/entity"
 	"github.com/vnnyx/golang-dot-api/model/web"
 )
 
@@ -14,4 +15,5 @@ type UserService interface {
 	UpdateUserProfile(ctx context.Context, request web.UserUpdateProfileRequest) (response web.UserResponse, err error)
 	RemoveUser(ctx context.Context, userId string) error
 	ValidateOTP(ctx context.Context, check web.UserEmailVerification) (response web.UserResponse, err error)
+	SendOTP(ctx context.Context, user entity.User, verify *web.UserEmailVerification) error
 }

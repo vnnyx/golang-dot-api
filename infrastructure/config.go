@@ -22,6 +22,7 @@ type Config struct {
 	MailPort               int    `mapstructure:"MAIL_PORT"`
 	MailUsername           string `mapstructure:"MAIL_USERNAME"`
 	MailPassword           string `mapstructure:"MAIL_PASSWORD"`
+	BrokerHost             string `mapstructure:"BROKER_HOST"`
 }
 
 func NewConfig(configName string) *Config {

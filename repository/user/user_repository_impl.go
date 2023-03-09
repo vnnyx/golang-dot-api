@@ -24,7 +24,6 @@ func NewUserRepository(DB *gorm.DB, redis *redis.Client) UserRepository {
 }
 
 func (repository *UserRepositoryImpl) InsertUser(ctx context.Context, user entity.User) (entity.User, error) {
-	fmt.Println("masuk create")
 	err := repository.DB.WithContext(ctx).Create(&user).Error
 	return user, err
 }
@@ -77,7 +76,7 @@ func (repository *UserRepositoryImpl) DeleteAllUser(ctx context.Context) error {
 	return repository.DB.WithContext(ctx).Exec("DELETE FROM users").Error
 }
 
-func (repository *UserRepositoryImpl) StoreToRedis(ctx context.Context, id string, token web.UserEmailVerification, user entity.User) error {
+func (repository *UserRepositoryImpl) StoreToRedis(ctx context.Context, token web.UserEmailVerification, user entity.User) error {
 	err := repository.Redis.Set(ctx, token.UserID, token.OTP, token.ExpiredAt).Err()
 	if err != nil {
 		return err
@@ -86,9 +85,12 @@ func (repository *UserRepositoryImpl) StoreToRedis(ctx context.Context, id strin
 	if err != nil {
 		return err
 	}
-	err = repository.Redis.HSet(ctx, id+"-hash", kv).Err()
-	repository.Redis.Expire(ctx, id+"-hash", token.ExpiredAt)
-	return err
+	err = repository.Redis.HSet(ctx, user.UserID+"-hash", kv).Err()
+	if err != nil {
+		return err
+	}
+	repository.Redis.Expire(ctx, user.UserID+"-hash", token.ExpiredAt)
+	return nil
 }
 
 func (repository *UserRepositoryImpl) GetDataToVerify(ctx context.Context, id string) (otp string, user entity.User, err error) {

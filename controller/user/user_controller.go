@@ -11,4 +11,5 @@ type UserController interface {
 	VerifyEmail(c echo.Context) error
 	UpdateUserProfile(c echo.Context) error
 	RemoveUser(c echo.Context) error
+	HandleMessage()
 }

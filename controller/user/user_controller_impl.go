@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/labstack/echo/v4"
 	"github.com/vnnyx/golang-dot-api/exception"
 	authMiddleware "github.com/vnnyx/golang-dot-api/middleware"
@@ -12,12 +13,13 @@ import (
 )
 
 type UserControllerImpl struct {
+	*kafka.Consumer
 	user.UserService
 	*authMiddleware.AuthMiddleware
 }
 
-func NewUserController(userService user.UserService, authMiddleware *authMiddleware.AuthMiddleware) UserController {
-	return &UserControllerImpl{UserService: userService, AuthMiddleware: authMiddleware}
+func NewUserController(userService user.UserService, authMiddleware *authMiddleware.AuthMiddleware, kafka *kafka.Consumer) UserController {
+	return &UserControllerImpl{UserService: userService, AuthMiddleware: authMiddleware, Consumer: kafka}
 }
 
 func (controller *UserControllerImpl) Route(e *echo.Echo) {

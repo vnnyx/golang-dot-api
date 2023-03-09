@@ -17,17 +17,18 @@ func main() {
 	databases := infrastructure.NewMySQLDatabase(configuration)
 	migration.Migrate(databases, entity.Transaction{}, entity.User{})
 
-	userController := wire.InitializeUserController(".env")
-	transactionController := wire.InitializeTransactionController(".env")
-	authController := wire.InitializeAuthController(".env")
-
+	controller, err := wire.InitializeController(".env")
+	if err != nil {
+		panic(err)
+	}
 	app := echo.New()
 	app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{DisablePrintStack: true}))
 	app.Use(middleware.CORS())
+
 	app.HTTPErrorHandler = exception.ErrorHandler
-	userController.Route(app)
-	transactionController.Route(app)
-	authController.Route(app)
-	err := app.Start(fmt.Sprintf(":%v", configuration.AppPort))
+	controller.AuthController.Route(app)
+	controller.TransactionController.Route(app)
+	controller.UserController.Route(app)
+	err = app.Start(fmt.Sprintf(":%v", configuration.AppPort))
 	exception.PanicIfNeeded(err)
 }
