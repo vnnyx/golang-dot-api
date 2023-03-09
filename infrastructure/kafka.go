@@ -9,8 +9,9 @@ import (
 )
 
 func createKafkaTopic() error {
+	configuration := NewConfig(".env")
 	a, err := kafka.NewAdminClient(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": configuration.BrokerHost,
 	})
 	if err != nil {
 		return err
