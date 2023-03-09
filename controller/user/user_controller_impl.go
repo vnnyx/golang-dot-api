@@ -2,7 +2,9 @@ package user
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/labstack/echo/v4"
 	"github.com/vnnyx/golang-dot-api/exception"
 	authMiddleware "github.com/vnnyx/golang-dot-api/middleware"
@@ -11,19 +13,22 @@ import (
 )
 
 type UserControllerImpl struct {
+	*kafka.Consumer
 	user.UserService
 	*authMiddleware.AuthMiddleware
 }
 
-func NewUserController(userService user.UserService, authMiddleware *authMiddleware.AuthMiddleware) UserController {
-	return &UserControllerImpl{UserService: userService, AuthMiddleware: authMiddleware}
+func NewUserController(userService user.UserService, authMiddleware *authMiddleware.AuthMiddleware, kafka *kafka.Consumer) UserController {
+	return &UserControllerImpl{UserService: userService, AuthMiddleware: authMiddleware, Consumer: kafka}
 }
 
 func (controller *UserControllerImpl) Route(e *echo.Echo) {
 	api := e.Group("/dot-api/user")
 	api.POST("", controller.CreateUser)
+	api.POST("/verify", controller.VerifyEmail)
 	api.GET("/:id", controller.GetUserById)
 	api.GET("", controller.GetAllUser)
+	api.GET("/transaction", controller.GetAllUserWithLastTransaction)
 	api.PUT("/:id", controller.UpdateUserProfile, controller.AuthMiddleware.CheckToken)
 	api.DELETE("/:id", controller.RemoveUser)
 }
@@ -57,9 +62,27 @@ func (controller *UserControllerImpl) GetUserById(c echo.Context) error {
 }
 
 func (controller *UserControllerImpl) GetAllUser(c echo.Context) error {
-	response, err := controller.UserService.GetAllUser(c.Request().Context())
+	var p web.Pagination
+	p.Limit, _ = strconv.Atoi(c.QueryParam("limit"))
+	p.Page, _ = strconv.Atoi(c.QueryParam("page"))
+	p.Sort = c.QueryParam("sort")
+	response, err := controller.UserService.GetAllUser(c.Request().Context(), p)
 	exception.PanicIfNeeded(err)
 
+	return c.JSON(http.StatusOK, web.WebResponse{
+		Code:   http.StatusOK,
+		Status: web.OK,
+		Data:   response,
+	})
+}
+
+func (controller *UserControllerImpl) GetAllUserWithLastTransaction(c echo.Context) error {
+	var p web.Pagination
+	p.Limit, _ = strconv.Atoi(c.QueryParam("limit"))
+	p.Page, _ = strconv.Atoi(c.QueryParam("page"))
+	p.Sort = c.QueryParam("sort")
+	response, err := controller.UserService.GetAllUserWithLastTransaction(c.Request().Context(), p)
+	exception.PanicIfNeeded(err)
 	return c.JSON(http.StatusOK, web.WebResponse{
 		Code:   http.StatusOK,
 		Status: web.OK,
@@ -92,5 +115,21 @@ func (controller *UserControllerImpl) RemoveUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, web.WebResponse{
 		Code:   http.StatusOK,
 		Status: web.OK,
+	})
+}
+
+func (controller *UserControllerImpl) VerifyEmail(c echo.Context) error {
+	var check web.UserEmailVerification
+	userId := c.QueryParam("id")
+	otp := c.QueryParam("otp")
+	check.UserID = userId
+	check.OTP, _ = strconv.Atoi(otp)
+	response, err := controller.UserService.ValidateOTP(c.Request().Context(), check)
+	exception.PanicIfNeeded(err)
+
+	return c.JSON(http.StatusOK, web.WebResponse{
+		Code:   http.StatusOK,
+		Status: web.OK,
+		Data:   response,
 	})
 }

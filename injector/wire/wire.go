@@ -5,6 +5,7 @@ package wire
 
 import (
 	"github.com/google/wire"
+	"github.com/vnnyx/golang-dot-api/controller"
 	authController "github.com/vnnyx/golang-dot-api/controller/auth"
 	transactionController "github.com/vnnyx/golang-dot-api/controller/transaction"
 	userController "github.com/vnnyx/golang-dot-api/controller/user"
@@ -18,46 +19,53 @@ import (
 	userService "github.com/vnnyx/golang-dot-api/service/user"
 )
 
-func InitializeUserController(configName string) userController.UserController {
+func InitializeController(configName string) (*controller.Controller, error) {
 	wire.Build(
+		infrastructure.NewKafkaConsumer,
+		infrastructure.NewKafkaProducer,
 		infrastructure.NewConfig,
 		infrastructure.NewMySQLDatabase,
 		infrastructure.NewRedisClient,
 		transactionRepository.NewTransactionRepository,
-		userRepository.NewUserRepository,
-		authRepository.NewAuthRepository,
-		authMiddleware.NewAuthMiddleware,
-		userService.NewUserService,
-		userController.NewUserController,
-	)
-	return nil
-}
-
-func InitializeTransactionController(configName string) transactionController.TransactionController {
-	wire.Build(
-		infrastructure.NewConfig,
-		infrastructure.NewMySQLDatabase,
-		infrastructure.NewRedisClient,
-		transactionRepository.NewTransactionRepository,
-		userRepository.NewUserRepository,
-		authRepository.NewAuthRepository,
-		authMiddleware.NewAuthMiddleware,
-		transactionService.NewTransactionService,
-		transactionController.NewTransactionController,
-	)
-	return nil
-}
-
-func InitializeAuthController(configName string) authController.AuthController {
-	wire.Build(
-		infrastructure.NewConfig,
-		infrastructure.NewMySQLDatabase,
-		infrastructure.NewRedisClient,
 		userRepository.NewUserRepository,
 		authRepository.NewAuthRepository,
 		authMiddleware.NewAuthMiddleware,
 		authService.NewAuthService,
+		userService.NewUserService,
+		transactionService.NewTransactionService,
+		userController.NewUserController,
+		transactionController.NewTransactionController,
 		authController.NewAuthController,
+		controller.NewController,
 	)
-	return nil
+	return &controller.Controller{}, nil
 }
+
+// func InitializeTransactionController(configName string) transactionController.TransactionController {
+// 	wire.Build(
+// 		infrastructure.NewConfig,
+// 		infrastructure.NewMySQLDatabase,
+// 		infrastructure.NewRedisClient,
+// 		transactionRepository.NewTransactionRepository,
+// 		userRepository.NewUserRepository,
+// 		authRepository.NewAuthRepository,
+// 		authMiddleware.NewAuthMiddleware,
+// 		transactionService.NewTransactionService,
+// 		transactionController.NewTransactionController,
+// 	)
+// 	return nil
+// }
+
+// func InitializeAuthController(configName string) authController.AuthController {
+// 	wire.Build(
+// 		infrastructure.NewConfig,
+// 		infrastructure.NewMySQLDatabase,
+// 		infrastructure.NewRedisClient,
+// 		userRepository.NewUserRepository,
+// 		authRepository.NewAuthRepository,
+// 		authMiddleware.NewAuthMiddleware,
+// 		authService.NewAuthService,
+// 		authController.NewAuthController,
+// 	)
+// 	return nil
+// }

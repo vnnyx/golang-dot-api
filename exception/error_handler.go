@@ -58,6 +58,15 @@ func generalError(err error, ctx echo.Context) {
 				"password_confirmation": "not match",
 			},
 		})
+	case "FAILED_TO_VERIFY":
+		_ = ctx.JSON(http.StatusBadRequest, web.WebResponse{
+			Code:   http.StatusBadRequest,
+			Status: web.BAD_REQUEST,
+			Data:   nil,
+			Error: map[string]interface{}{
+				"otp": "invalid",
+			},
+		})
 	case "code=404, message=Not Found":
 		_ = ctx.JSON(http.StatusNotFound, web.WebResponse{
 			Code:   http.StatusNotFound,
@@ -83,6 +92,7 @@ func generalError(err error, ctx echo.Context) {
 			Data:   nil,
 			Error: map[string]interface{}{
 				"message": "Internal server error",
+				"detail":  err,
 			},
 		})
 	}

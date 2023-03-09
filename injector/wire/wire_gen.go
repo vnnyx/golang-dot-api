@@ -7,55 +7,44 @@
 package wire
 
 import (
-	auth2 "github.com/vnnyx/golang-dot-api/controller/auth"
-	transaction2 "github.com/vnnyx/golang-dot-api/controller/transaction"
-	"github.com/vnnyx/golang-dot-api/controller/user"
+	"github.com/vnnyx/golang-dot-api/controller"
+	auth3 "github.com/vnnyx/golang-dot-api/controller/auth"
+	transaction3 "github.com/vnnyx/golang-dot-api/controller/transaction"
+	user3 "github.com/vnnyx/golang-dot-api/controller/user"
 	"github.com/vnnyx/golang-dot-api/infrastructure"
 	"github.com/vnnyx/golang-dot-api/middleware"
 	"github.com/vnnyx/golang-dot-api/repository/auth"
 	"github.com/vnnyx/golang-dot-api/repository/transaction"
-	user2 "github.com/vnnyx/golang-dot-api/repository/user"
-	auth3 "github.com/vnnyx/golang-dot-api/service/auth"
-	transaction3 "github.com/vnnyx/golang-dot-api/service/transaction"
-	user3 "github.com/vnnyx/golang-dot-api/service/user"
+	"github.com/vnnyx/golang-dot-api/repository/user"
+	auth2 "github.com/vnnyx/golang-dot-api/service/auth"
+	transaction2 "github.com/vnnyx/golang-dot-api/service/transaction"
+	user2 "github.com/vnnyx/golang-dot-api/service/user"
 )
 
 // Injectors from wire.go:
 
-func InitializeUserController(configName string) user.UserController {
-	config := infrastructure.NewConfig(configName)
-	db := infrastructure.NewMySQLDatabase(config)
-	userRepository := user2.NewUserRepository(db)
-	transactionRepository := transaction.NewTransactionRepository(db)
-	userService := user3.NewUserService(userRepository, transactionRepository, db)
-	client := infrastructure.NewRedisClient(configName)
-	authRepository := auth.NewAuthRepository(client)
-	authMiddleware := middleware.NewAuthMiddleware(authRepository, userRepository, configName)
-	userController := user.NewUserController(userService, authMiddleware)
-	return userController
-}
-
-func InitializeTransactionController(configName string) transaction2.TransactionController {
+func InitializeController(configName string) (*controller.Controller, error) {
 	config := infrastructure.NewConfig(configName)
 	db := infrastructure.NewMySQLDatabase(config)
 	transactionRepository := transaction.NewTransactionRepository(db)
-	userRepository := user2.NewUserRepository(db)
-	transactionService := transaction3.NewTransactionService(transactionRepository, userRepository)
 	client := infrastructure.NewRedisClient(configName)
+	userRepository := user.NewUserRepository(db, client)
+	transactionService := transaction2.NewTransactionService(transactionRepository, userRepository)
 	authRepository := auth.NewAuthRepository(client)
 	authMiddleware := middleware.NewAuthMiddleware(authRepository, userRepository, configName)
-	transactionController := transaction2.NewTransactionController(transactionService, authMiddleware)
-	return transactionController
-}
-
-func InitializeAuthController(configName string) auth2.AuthController {
-	config := infrastructure.NewConfig(configName)
-	db := infrastructure.NewMySQLDatabase(config)
-	userRepository := user2.NewUserRepository(db)
-	client := infrastructure.NewRedisClient(configName)
-	authRepository := auth.NewAuthRepository(client)
-	authService := auth3.NewAuthService(config, db, userRepository, authRepository)
-	authMiddleware := middleware.NewAuthMiddleware(authRepository, userRepository, configName)
-	authController := auth2.NewAuthController(authService, authMiddleware)
-	return authController
+	transactionController := transaction3.NewTransactionController(transactionService, authMiddleware)
+	producer, err := infrastructure.NewKafkaProducer()
+	if err != nil {
+		return nil, err
+	}
+	userService := user2.NewUserService(userRepository, transactionRepository, db, producer)
+	consumer, err := infrastructure.NewKafkaConsumer()
+	if err != nil {
+		return nil, err
+	}
+	userController := user3.NewUserController(userService, authMiddleware, consumer)
+	authService := auth2.NewAuthService(config, db, userRepository, authRepository)
+	authController := auth3.NewAuthController(authService, authMiddleware)
+	controllerController := controller.NewController(transactionController, userController, authController)
+	return controllerController, nil
 }
